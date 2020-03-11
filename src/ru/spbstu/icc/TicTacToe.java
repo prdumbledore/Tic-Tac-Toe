@@ -7,7 +7,14 @@ public class TicTacToe {
     enum CellValue {
         EMPTY(' '), CROSS('X'), ZERO('O');
 
-        CellValue(char c) {
+        private char Char;
+
+        CellValue(char symbol) {
+            this.Char = symbol;
+        }
+
+        public char getChar() {
+            return Char;
         }
     }
 
@@ -65,8 +72,17 @@ public class TicTacToe {
     }
 
     /**
-     * For First Direction = FFD
-     * For Second Direction = FSD
+     * @param row номер строки, в которую добавили символ
+     * @param column номер столбца, в которую добавили символ
+     * @param symbol символ, который добавили в ячейку
+     * @param maxSymbol вспомогательная переменная, для нахождения максимальной последовательности этого символа
+     *
+     * После добавления в поле некоторого символа, максимальная последовательность для этого символа может изменится.
+     * Программа проходит по вертикали, горизонтали и 2 диагоналям, на которых лежит ячейка, в которую только что добавили символ.
+     *
+     * Сокращения:
+     * For First Direction = FFD   -  первое направление по диагонали от точки  ⇖ или ⇗
+     * For Second Direction = FSD   -  второе направление по диагонали от точки  ⇘ или ⇙
      */
     private int findMaxSequenceAfterSetSymbol(int row, int column, CellValue symbol, int maxSymbol) {
         for (int i = 0; i < 8; i += 2) {
@@ -111,32 +127,37 @@ public class TicTacToe {
         } else throw new IllegalArgumentException("Указанные значения выходят за рамки поля");
     }
 
+    /**
+     * @param symbol символ, который удалили из ячейки
+     *
+     * После удаления из поля некоторого символа, максимальная последовательность для этого символа может изменится.
+     * Программа проходит по всем вертикалям, горизонталям и диагоналям и ищет новую максимальную последовательность для этого символа.
+     * Сначала программа проходит по диагоналям, а затем проверяет горизонтали и вертикали.
+     */
     private int findMaxSequenceAfterClearSymbol(CellValue symbol) {
         int col = this.size;
         int formal = 0;
         for (int row = 0; row < this.size; row++) {
             col--;
-            int firstDirection = 0;
-            int secondDirection = 0;
-            int straightLine = 0;
             int r = 0;
             int c = col;
-            formal = findMaxDiagonallySequenceAfterClearSymbol(r, c, symbol, formal, firstDirection, secondDirection, 0);
+            formal = findMaxDiagonallySequenceAfterClearSymbol(r, c, symbol, formal, 0); //first diagonal
             r = 6;
             c = col;
-            formal = findMaxDiagonallySequenceAfterClearSymbol(r, c, symbol, formal, firstDirection, secondDirection, 2);
+            formal = findMaxDiagonallySequenceAfterClearSymbol(r, c, symbol, formal, 2); //second diagonal
             r = row;
             c = 0;
-            formal = findMaxStraightSequenceAfterClearSymbol(r, c, symbol, formal, straightLine, 4); //horizontal
+            formal = findMaxStraightSequenceAfterClearSymbol(r, c, symbol, formal, 4); //horizontal
             r = 0;
             c = col;
-            formal = findMaxStraightSequenceAfterClearSymbol(r, c, symbol, formal, straightLine, 6); //vertical
+            formal = findMaxStraightSequenceAfterClearSymbol(r, c, symbol, formal, 6); //vertical
         }
         return formal;
     }
 
-    private int findMaxDiagonallySequenceAfterClearSymbol(int row, int column, CellValue symbol, int formal,
-                                                  int firstDirection, int secondDirection, int i) {
+    private int findMaxDiagonallySequenceAfterClearSymbol(int row, int column, CellValue symbol, int formal, int i) {
+        int firstDirection = 0;
+        int secondDirection = 0;
         while (inside(row, column) && inside(column, row)) {
             if (field[row][column] == symbol) firstDirection++;
             else {
@@ -156,8 +177,8 @@ public class TicTacToe {
         return formal;
     }
 
-    private int findMaxStraightSequenceAfterClearSymbol(int row, int column, CellValue symbol, int formal,
-                                                int straightLine, int i) {
+    private int findMaxStraightSequenceAfterClearSymbol(int row, int column, CellValue symbol, int formal, int i) {
+        int straightLine = 0;
         while (inside(row, column)) {
             if (field[row][column] == symbol) straightLine++;
             else {
